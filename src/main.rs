@@ -1,15 +1,15 @@
+use base64::{engine::general_purpose, Engine as _};
+use futures::{stream, StreamExt};
+use reqwest::Client;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
+use std::collections::HashSet;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
-use base64::{Engine as _, engine::general_purpose};
 use std::str;
-use futures::{stream, StreamExt};
-use reqwest::Client;
 use tokio;
-
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -98,7 +98,8 @@ pub struct RegistryRedhatIo {
 async fn main() {
     // global variables can be tricky in rust :)
     const REALM_URL: &str = "https://sso.redhat.com/auth/realms/rhcc/protocol/redhat-docker-v2/auth?service=docker-registry&client_id=curl&scope=repository:rhel:pull";
-    const MANIFESTS_URL: &str = "https://registry.redhat.io/v2/redhat/redhat-operator-index/manifests/v4.11";
+    const MANIFESTS_URL: &str =
+        "https://registry.redhat.io/v2/redhat/redhat-operator-index/manifests/v4.11";
     const MANIFEST_JSON_DIR: &str = "working-dir/rhopi/manifest.json";
     const BLOBS_URL: &str = "https://registry.redhat.io/v2/redhat/redhat-operator-index/blobs/";
 
@@ -117,18 +118,22 @@ async fn main() {
     let user = s.split(":").nth(0).unwrap();
     let pwd = s.split(":").nth(1).unwrap();
     // call the realm url get a token with the creds
-    let res = get_token(REALM_URL.to_string(),user.to_string(),pwd.to_string()).await.unwrap();
+    let res = get_token(REALM_URL.to_string(), user.to_string(), pwd.to_string())
+        .await
+        .unwrap();
     let token = parse_json_token(res).unwrap();
     // use token to get manifest
-    let manifest = get_manifest(MANIFESTS_URL.to_string(), token.clone()).await.unwrap();
+    let manifest = get_manifest(MANIFESTS_URL.to_string(), token.clone())
+        .await
+        .unwrap();
     fs::write(MANIFEST_JSON_DIR, manifest.clone()).expect("unable to write file");
     let res = parse_json_manifest(manifest).unwrap();
     println!("manifest = {:#?} ", res);
     get_blobs(BLOBS_URL.to_string(), token, res.fs_layers).await;
+    println!("INFO: completed image index download")
 }
 
-
-fn get_credentials() -> Result<String,Box<dyn std::error::Error>>{
+fn get_credentials() -> Result<String, Box<dyn std::error::Error>> {
     // Create a path to the desired file
     let path = Path::new("/run/user/1000/containers/auth.json");
     let display = path.display();
@@ -145,29 +150,34 @@ fn get_credentials() -> Result<String,Box<dyn std::error::Error>>{
     Ok(s)
 }
 
-pub fn parse_json_creds(data: String) -> Result<String,Box<dyn std::error::Error>> {
+pub fn parse_json_creds(data: String) -> Result<String, Box<dyn std::error::Error>> {
     // Parse the string of data into serde_json::Value.
     let root: Root = serde_json::from_str(&data)?;
     Ok(root.auths.registry_redhat_io.auth)
 }
 
-pub fn parse_json_token(data: String) -> Result<String,Box<dyn std::error::Error>> {
+pub fn parse_json_token(data: String) -> Result<String, Box<dyn std::error::Error>> {
     // Parse the string of data into serde_json::Value.
     let root: Token = serde_json::from_str(&data)?;
     Ok(root.access_token)
 }
 
-pub fn parse_json_manifest(data: String) -> Result<ManifestSchema,Box<dyn std::error::Error>> {
+pub fn parse_json_manifest(data: String) -> Result<ManifestSchema, Box<dyn std::error::Error>> {
     // Parse the string of data into serde_json::Value.
     let root: ManifestSchema = serde_json::from_str(&data)?;
     Ok(root)
 }
 
-
-async fn get_token(url: String,user: String,password: String) -> Result<String,Box<dyn std::error::Error>> {
+async fn get_token(
+    url: String,
+    user: String,
+    password: String,
+) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let pwd: Option<String> = Some(password);
-    let body = client.get(url).basic_auth(user, pwd)
+    let body = client
+        .get(url)
+        .basic_auth(user, pwd)
         .send()
         .await?
         .text()
@@ -175,11 +185,12 @@ async fn get_token(url: String,user: String,password: String) -> Result<String,B
     Ok(body)
 }
 
-async fn get_manifest(url: String,token: String) -> Result<String,Box<dyn std::error::Error>> {
+async fn get_manifest(url: String, token: String) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let mut header_bearer: String = "Bearer ".to_owned();
-    header_bearer.push_str(&token);    
-    let body = client.get(url)
+    header_bearer.push_str(&token);
+    let body = client
+        .get(url)
         .header("Accept", "application/vnd.oci.image.manifest.v1+json")
         .header("Content-Type", "application/json")
         .header("Authorization", header_bearer)
@@ -190,7 +201,7 @@ async fn get_manifest(url: String,token: String) -> Result<String,Box<dyn std::e
     Ok(body)
 }
 
-async fn get_blobs(url: String, token: String,layers: Vec<FsLayer>) {
+async fn get_blobs(url: String, token: String, layers: Vec<FsLayer>) {
     const PARALLEL_REQUESTS: usize = 8;
     const BLOBS_DIR: &str = "working-dir/rhopi/blobs/sha256/";
 
@@ -198,27 +209,42 @@ async fn get_blobs(url: String, token: String,layers: Vec<FsLayer>) {
     let mut header_bearer: String = "Bearer ".to_owned();
     header_bearer.push_str(&token);
 
-    let fetches = stream::iter(
-    layers.into_iter().map(|blob| {
-        let client = client.clone(); 
+    // remove all duplicates in FsLayer
+    let mut images = Vec::new();
+    let mut seen = HashSet::new();
+    for img in layers {
+        if !seen.contains(&img.blob_sum) {
+            seen.insert(img.blob_sum.clone());
+            images.push(img.blob_sum);
+        }
+    }
+
+    let fetches = stream::iter(images.into_iter().map(|blob| {
+        let client = client.clone();
         let url = url.clone();
         let header_bearer = header_bearer.clone();
         async move {
-            match client.get(url+&blob.blob_sum).header("Authorization", header_bearer).send().await {
-                        Ok(resp) => {
-                    match resp.bytes().await {
-                        Ok(bytes) => {
-                            let blob = blob.blob_sum.split(":").nth(1).unwrap();
-                            fs::write(BLOBS_DIR.to_string()+&blob, bytes.clone()).expect("unable to write blob");
-                            println!("INFO: writing response to {}", blob);
-                        }
-                        Err(_) => println!("ERROR: reading {}", blob.blob_sum),
+            match client
+                .get(url + &blob)
+                .header("Authorization", header_bearer)
+                .send()
+                .await
+            {
+                Ok(resp) => match resp.bytes().await {
+                    Ok(bytes) => {
+                        let blob = blob.split(":").nth(1).unwrap();
+                        fs::write(BLOBS_DIR.to_string() + &blob, bytes.clone())
+                            .expect("unable to write blob");
+                        println!("INFO: writing blob {}", blob);
                     }
-                }
-                Err(_) => println!("ERROR: downloading {}", blob.blob_sum),
+                    Err(_) => println!("ERROR: reading blob {}", blob),
+                },
+                Err(_) => println!("ERROR: downloading blob {}", blob),
             }
         }
-    })).buffer_unordered(PARALLEL_REQUESTS).collect::<Vec<()>>();
-    println!("INFO: waiting...");
+    }))
+    .buffer_unordered(PARALLEL_REQUESTS)
+    .collect::<Vec<()>>();
+    println!("INFO: downloading blobs...");
     fetches.await;
 }

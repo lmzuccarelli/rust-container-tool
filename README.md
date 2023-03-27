@@ -23,9 +23,12 @@ I used a simple approach - Occam's razor
 
 Clone this repo
 
+Ensure that you have the correct permissions set in the $XDG_RUNTIME_DIR/containers/auth.json file
+
 Execute the following to copy from a registry
 
 ```bash
+mkdir -p working-dir/rhopi/blobs/sha256
 cargo build 
 cargo run
 ```
