@@ -13,3 +13,5 @@ serde_derive = { version = "1.0" }
 serde_json = { version = "1.0" }
 base64 = { version = "0.21"}
 futures = { version = "0.3"}
+flate2 = "1.0.25"
+tar = "0.4.38"
