@@ -1,101 +1,26 @@
 use base64::{engine::general_purpose, Engine as _};
 use futures::{stream, StreamExt};
 use reqwest::Client;
-use serde_derive::Deserialize;
-use serde_derive::Serialize;
 use std::collections::HashSet;
 use std::fs;
 use std::fs::File;
-use std::io::prelude::*;
-use std::path::Path;
-use std::str;
-use std::env;
 use tokio;
 use flate2::read::GzDecoder;
 use tar::Archive;
+//use std::io::prelude::*;
+use std::path::Path;
+use std::str;
+use std::env;
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ManifestSchema {
-    pub tag: String,
-    pub name: String,
-    pub architecture: String,
-    pub schema_version: i64,
-    pub history: Vec<History>,
-    pub fs_layers: Vec<FsLayer>,
-}
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct History {
-    #[serde(rename = "v1Compatibility")]
-    pub v1compatibility: String,
-}
+// define modules
+mod log;
+mod api;
+mod auth;
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct FsLayer {
-    pub blob_sum: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Token {
-    pub token: String,
-    #[serde(rename = "access_token")]
-    pub access_token: String,
-    #[serde(rename = "expires_in")]
-    pub expires_in: i64,
-    #[serde(rename = "issued_at")]
-    pub issued_at: String,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Root {
-    pub auths: Auths,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Auths {
-    #[serde(rename = "cloud.openshift.com")]
-    pub cloud_openshift_com: CloudOpenshiftCom,
-    #[serde(rename = "quay.io")]
-    pub quay_io: QuayIo,
-    #[serde(rename = "registry.connect.redhat.com")]
-    pub registry_connect_redhat_com: RegistryConnectRedhatCom,
-    #[serde(rename = "registry.redhat.io")]
-    pub registry_redhat_io: RegistryRedhatIo,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CloudOpenshiftCom {
-    pub auth: String,
-    pub email: Option<String>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuayIo {
-    pub auth: String,
-    pub email: Option<String>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RegistryConnectRedhatCom {
-    pub auth: String,
-    pub email: Option<String>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RegistryRedhatIo {
-    pub auth: String,
-    pub email: Option<String>,
-}
+use log::logging::*;
+use api::schema::*;
+use auth::credentials::*;
 
 #[tokio::main]
 async fn main() {
@@ -159,58 +84,7 @@ async fn main() {
     }
 }
 
-fn get_credentials() -> Result<String, Box<dyn std::error::Error>> {
-    // Create a path to the desired file
-    let path = Path::new("/run/user/1000/containers/auth.json");
-    let display = path.display();
-
-    // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
-        Err(why) => panic!("couldn't open {}: {}", display, why),
-        Ok(file) => file,
-    };
-
-    // Read the file contents into a string, returns `io::Result<usize>`
-    let mut s = String::new();
-    file.read_to_string(&mut s)?;
-    Ok(s)
-}
-
-pub fn parse_json_creds(data: String) -> Result<String, Box<dyn std::error::Error>> {
-    // Parse the string of data into serde_json::Value.
-    let creds: Root = serde_json::from_str(&data)?;
-    Ok(creds.auths.registry_redhat_io.auth)
-}
-
-pub fn parse_json_token(data: String) -> Result<String, Box<dyn std::error::Error>> {
-    // Parse the string of data into serde_json::Value.
-    let root: Token = serde_json::from_str(&data)?;
-    Ok(root.access_token)
-}
-
-pub fn parse_json_manifest(data: String) -> Result<ManifestSchema, Box<dyn std::error::Error>> {
-    // Parse the string of data into serde_json::Value.
-    let root: ManifestSchema = serde_json::from_str(&data)?;
-    Ok(root)
-}
-
-async fn get_token(
-    url: String,
-    user: String,
-    password: String,
-) -> Result<String, Box<dyn std::error::Error>> {
-    let client = reqwest::Client::new();
-    let pwd: Option<String> = Some(password);
-    let body = client
-        .get(url)
-        .basic_auth(user, pwd)
-        .send()
-        .await?
-        .text()
-        .await?;
-    Ok(body)
-}
-
+// get manifest
 async fn get_manifest(url: String, token: String) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let mut header_bearer: String = "Bearer ".to_owned();
@@ -343,19 +217,4 @@ fn list_components(ctype: String,dir: String) {
     }
 }
 
-// logging conveninece functions
-fn log_info(msg: &str) {
-    println!("\x1b[1;94m {} \x1b[0m {}","INFO: ",msg);
-}
 
-fn log_hi(msg: &str) {
-    println!("\x1b[1;94m {} \x1b[0m \x1b[1;95m{} \x1b[0m","INFO: ",msg);
-}
-
-fn log_warn(msg: &str) {
-    println!("\x1b[1;93m {} \x1b[0m {}","WARN: ",msg);
-}
-
-fn log_error(msg: &str) {
-    println!("\x1b[1;91m {} \x1b[0m {}","ERROR:",msg);
-}
