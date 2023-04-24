@@ -1,0 +1,15 @@
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+storageConfig:
+  local:
+    path: /tmp/lmz
+mirror:
+  platform: {}
+  operators:
+    - catalog: localhost:5000/redhat/certified-operator-index:v4.12
+      packages: 
+      - name: gitlab-runner-operator
+        channels: 
+        - name: stable
+  additionalImages: []
+  helm: {} 

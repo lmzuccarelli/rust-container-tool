@@ -1,0 +1,12 @@
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+mirror:
+  operators:
+  - catalog: oci:lmz-test
+    packages: []
+    full: true
+    targetTag: latest
+    targetCatalog: ibm-curated-catalog
+storageConfig:
+  local:
+    path: /tmp/oc-mirror-temp
