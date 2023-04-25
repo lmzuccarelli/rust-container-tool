@@ -1,10 +1,10 @@
 // module api
 use serde_derive::Deserialize;
 //use serde_with::serde_as;
-use serde_with::serde_as;
+//use serde_with::serde_as;
 //se serde_with::DefaultOnError;
-use serde_derive::Serialize;
 use clap::Parser;
+use serde_derive::Serialize;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -115,7 +115,7 @@ pub struct Cli {
 }
 
 /// config schema
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ImageSetConfig {
     #[serde(rename = "kind")]
     pub kind: String,
@@ -130,7 +130,7 @@ pub struct ImageSetConfig {
     pub mirror: Mirror,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Mirror {
     #[serde(rename = "platform")]
     pub platform: Platform,
@@ -142,13 +142,13 @@ pub struct Mirror {
     pub additional_images: Vec<Image>,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Image {
     #[serde(rename = "name")]
     name: String,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Operator {
     #[serde(rename = "catalog")]
     catalog: String,
@@ -157,7 +157,7 @@ pub struct Operator {
     packages: Option<Vec<Image>>,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Platform {
     #[serde(rename = "channels")]
     channels: Vec<ChannelP>,
@@ -166,7 +166,7 @@ pub struct Platform {
     graph: bool,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ChannelP {
     #[serde(rename = "name")]
     name: String,
@@ -175,130 +175,106 @@ pub struct ChannelP {
     channel_type: String,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct StorageConfig {
     #[serde(rename = "local")]
     local: Local,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Local {
     #[serde(rename = "path")]
     path: String,
 }
 
-#[derive(Serialize,Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Catalog {
     #[serde(rename = "overview")]
     pub overview: serde_json::Value,
 }
 
 // DeclarativeConfig this updates the existing dclrcfg
-#[derive(Serialize,Deserialize,Debug)]
-pub struct DeclarativeConfigWithEntries {
-    #[serde(rename = "schema")]
-	pub schema: String,
-
-    #[serde(rename = "name")]
-	pub name: String,
-    
-    #[serde(rename = "package")]
-	pub package: Option<String>,
-    
-   /* 
-    #[serde(rename = "properties")]
-	properties: Option<String>,
-
-    */
-    #[serde(rename = "relatedImages")]
-	pub related_images:  Option<Vec<RelatedImage>>,
-     
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DeclarativeEntries {
     #[serde(rename = "entries")]
-	pub entries:  Option<Vec<ChannelEntry>>,
-    
-    #[serde(rename = "defaultChannel")]
-	pub default_channel: Option<String>,
-
-    #[serde(rename = "description")]
-	pub description: Option<String>,
+    pub entries: Option<Vec<ChannelEntry>>,
 }
 
-#[derive(Serialize,Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DeclarativeConfig {
     #[serde(rename = "schema")]
-	pub schema: String,
+    pub schema: String,
 
     #[serde(rename = "name")]
-	pub name: String,
-    
+    pub name: String,
+
     #[serde(rename = "package")]
-	pub package: Option<String>,
-    
+    pub package: Option<String>,
+
     #[serde(rename = "relatedImages")]
-	pub related_images:  Option<Vec<RelatedImage>>,
-     
+    pub related_images: Option<Vec<RelatedImage>>,
+
     #[serde(rename = "defaultChannel")]
-	pub default_channel: Option<String>,
+    pub default_channel: Option<String>,
 
     #[serde(rename = "description")]
-	pub description: Option<String>,
+    pub description: Option<String>,
 }
 
-
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RelatedImage {
     #[serde(rename = "name")]
-	pub name: String,
+    pub name: String,
 
     #[serde(rename = "image")]
-	pub image: String,
+    pub image: String,
 }
 
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Package {
     #[serde(rename = "schema")]
-	pub schema: String,
+    pub schema: String,
 
     #[serde(rename = "name")]
-	pub name: String,
+    pub name: String,
 
     #[serde(rename = "defaultChannel")]
-	pub default_channel: Option<String>,
+    pub default_channel: Option<String>,
 
     #[serde(rename = "description")]
-	pub description: String,
+    pub description: String,
 }
 
 // Channel used in parsing channel data
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Channel {
     #[serde(rename = "schema")]
-	pub schema: String,
+    pub schema: String,
 
     #[serde(rename = "name")]
-	pub name: String,
+    pub name: String,
 
     #[serde(rename = "package")]
-	pub package: String,
+    pub package: String,
 
     #[serde(rename = "entries")]
-	pub entries:    Vec<ChannelEntry>,
+    pub entries: Vec<ChannelEntry>,
 }
 
 // ChannelEntry used in the Channel struct
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ChannelEntry {
     #[serde(rename = "name")]
-	pub name: String,
+    pub name: String,
 
     #[serde(rename = "replaces")]
-	pub replaces: Option<String>,
+    pub replaces: Option<String>,
 
     #[serde(rename = "skips")]
-	pub skips: Option<String>,
+    pub skips: Option<String>,
 
     #[serde(rename = "skipRange")]
-	pub skip_range: Option<String>,
+    pub skip_range: Option<String>,
 }
 
 // Bundle specifies all metadata and data of a bundle object.
@@ -310,30 +286,30 @@ pub struct ChannelEntry {
 //     of order must have a `hash:"set"` field tag for bundle comparison.
 //   - Any fields that have a `json:"-"` tag must be included in the equality
 //     evaluation in bundlesEqual().
-#[derive(Serialize, Deserialize,Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Bundle {
     #[serde(rename = "schema")]
-	pub schema: String,
+    pub schema: String,
 
     #[serde(rename = "name")]
-	pub name: String,
+    pub name: String,
 
     #[serde(rename = "package")]
-	pub package: String,
+    pub package: String,
 
     #[serde(rename = "image")]
-	pub image: String,
+    pub image: String,
 
     #[serde(rename = "relatedImages")]
-	pub related_images: Vec<RelatedImage>,   
-	// These fields are present so that we can continue serving
-	// the GRPC API the way packageserver expects us to in a
-	// backwards-compatible way. These are populated from
-	// any `olm.bundle.object` properties.
-	//
-	// These fields will never be persisted in the bundle blob as
-	// first class fields.
-	
-	//CsvJSON string   `json:"-"`
-	//Objects []string `json:"-"`
+    pub related_images: Vec<RelatedImage>,
+    // These fields are present so that we can continue serving
+    // the GRPC API the way packageserver expects us to in a
+    // backwards-compatible way. These are populated from
+    // any `olm.bundle.object` properties.
+    //
+    // These fields will never be persisted in the bundle blob as
+    // first class fields.
+
+    //CsvJSON string   `json:"-"`
+    //Objects []string `json:"-"`
 }
