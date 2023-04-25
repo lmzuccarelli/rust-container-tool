@@ -101,9 +101,9 @@ pub struct Cli {
     #[arg(short, long, value_name = "config")]
     pub config: String,
 
-    /// working directory
-    #[arg(short, long, value_name = "working-dir")]
-    pub dir: String,
+    /// image-index to list
+    #[arg(short, long, value_name = "image-index")]
+    pub image: String,
 
     /// action
     #[arg(short, long, value_name = "action")]
@@ -312,4 +312,13 @@ pub struct Bundle {
 
     //CsvJSON string   `json:"-"`
     //Objects []string `json:"-"`
+}
+
+// ImageReference
+#[derive(Debug, Clone)]
+pub struct ImageReference {
+    pub registry: String,
+    pub namespace: String,
+    pub name: String,
+    pub version: String,
 }

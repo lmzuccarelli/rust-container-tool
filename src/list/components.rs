@@ -29,10 +29,10 @@ pub fn list_channel_info(dc: serde_json::Value) {
         Ok(val) => val,
         Err(_) => {
             let ch = ChannelEntry {
-                name: String::from("kaka"),
-                skips: Some(String::from("one")),
-                skip_range: Some(String::from("too")),
-                replaces: Some(String::from("free")),
+                name: String::from("None"),
+                skips: Some(String::from("no-skips")),
+                skip_range: Some(String::from("no-skip_range")),
+                replaces: Some(String::from("no-replaces")),
             };
             let v = vec![ch];
             let de = DeclarativeEntries { entries: Some(v) };

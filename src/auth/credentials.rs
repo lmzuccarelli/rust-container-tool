@@ -1,8 +1,8 @@
+use crate::api::schema::*;
+use crate::Path;
+use base64::{engine::general_purpose, Engine as _};
 use std::fs::File;
 use std::io::Read;
-use crate::Path;
-use crate::api::schema::*;
-use base64::{engine::general_purpose, Engine as _};
 use std::str;
 
 pub fn get_credentials() -> Result<String, Box<dyn std::error::Error>> {
@@ -57,8 +57,11 @@ pub async fn get_auth_json(
     Ok(body)
 }
 
-pub async fn get_token() -> String {
-    const REALM_URL: &str = "https://sso.redhat.com/auth/realms/rhcc/protocol/redhat-docker-v2/auth?service=docker-registry&client_id=curl&scope=repository:rhel:pull";
+pub async fn get_token(name: String) -> String {
+    let token_url = match name.as_str() {
+        "redhat" => "https://sso.redhat.com/auth/realms/rhcc/protocol/redhat-docker-v2/auth?service=docker-registry&client_id=curl&scope=repository:rhel:pull".to_string(),
+        &_ => "none".to_string(),
+    };
     // get creds from $XDG_RUNTIME_DIR
     let creds = get_credentials().unwrap();
     // parse the json data
@@ -74,9 +77,9 @@ pub async fn get_token() -> String {
     let user = s.split(":").nth(0).unwrap();
     let pwd = s.split(":").nth(1).unwrap();
     // call the realm url get a token with the creds
-    let res = get_auth_json(REALM_URL.to_string(), user.to_string(), pwd.to_string())
-            .await
-            .unwrap();
+    let res = get_auth_json(token_url, user.to_string(), pwd.to_string())
+        .await
+        .unwrap();
     let token = parse_json_token(res).unwrap();
     token
 }
