@@ -26,6 +26,9 @@ pub async fn list_components(ctype: String, dir: String, filter: String) {
 }
 
 pub fn list_channel_info(dc: serde_json::Value) {
+    // attempt to read entries first
+    // this is because some catalogs don't have entries and
+    // this would cause a panic
     let de: Vec<DeclarativeEntries> = match serde_json::from_value(dc.clone()) {
         Ok(val) => val,
         Err(_) => {
@@ -42,8 +45,10 @@ pub fn list_channel_info(dc: serde_json::Value) {
         }
     };
 
+    // read the rest of the declarative config
     let dc: Vec<DeclarativeConfig> = serde_json::from_value(dc).unwrap();
 
+    // list channel, bundles and defaultChannel
     for x in dc {
         if x.default_channel != None {
             let channel = x.default_channel.clone().unwrap();
@@ -56,6 +61,7 @@ pub fn list_channel_info(dc: serde_json::Value) {
             log_mid(&format!("    bundle => {}", x.name));
         }
     }
+    // lis tall entries
     for decl_entry in de.into_iter() {
         if let Some(channel_entry) = decl_entry.entries {
             for item in channel_entry {

@@ -24,18 +24,21 @@ use manifests::catalogs::*;
 async fn main() {
     let args = Cli::parse();
     let filter = args.filter.as_ref().unwrap().to_string();
+    let cfg = args.config.as_ref().unwrap().to_string();
 
     log_info(&format!(
         "rust-container-tools {} {} {}",
-        args.config, args.image, filter
+        cfg, args.image, filter
     ));
 
     let img_ref = parse_image_index(args.image);
 
     // Parse the config serde_yaml::ImageSetConfig.
-    let config = load_config(args.config).unwrap();
-    let isc = parse_yaml_config(config).unwrap();
-    log_debug(&format!("{:#?}", isc.mirror.platform));
+    if cfg != "" {
+        let config = load_config(cfg).unwrap();
+        let isc = parse_yaml_config(config).unwrap();
+        log_debug(&format!("{:#?}", isc.mirror.platform));
+    }
 
     let manifest_json = get_manifest_json_file(img_ref.name.clone(), img_ref.version.clone());
     let working_dir_blobs = get_blobs_dir(img_ref.name.clone(), img_ref.version.clone());

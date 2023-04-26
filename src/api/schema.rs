@@ -1,9 +1,6 @@
 // module api
-use serde_derive::Deserialize;
-//use serde_with::serde_as;
-//use serde_with::serde_as;
-//se serde_with::DefaultOnError;
 use clap::Parser;
+use serde_derive::Deserialize;
 use serde_derive::Serialize;
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -99,7 +96,7 @@ pub struct RegistryRedhatIo {
 pub struct Cli {
     /// config file to use
     #[arg(short, long, value_name = "config")]
-    pub config: String,
+    pub config: Option<String>,
 
     /// image-index to list
     #[arg(short, long, value_name = "image-index")]

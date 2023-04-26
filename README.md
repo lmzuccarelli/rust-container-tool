@@ -30,6 +30,8 @@ Execute the following to copy from a registry
 ```bash
 mkdir -p working-dir/rhopi/blobs/sha256
 cargo build 
-cargo run
+
+# list an operator
+cargo run -- --config imstcfg.yaml --image registry.redhat.io/redhat/redhat-operator-index:v4.12 --action list --filter windows-machine-config-operator
 ```
 
