@@ -95,7 +95,7 @@ pub struct RegistryRedhatIo {
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     /// config file to use
-    #[arg(short, long, value_name = "config")]
+    #[arg(short, long, value_name = "config", default_value = "")]
     pub config: Option<String>,
 
     /// image-index to list

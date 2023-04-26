@@ -126,7 +126,7 @@ pub fn parse_image_index(image: String) -> ImageReference {
         name: img_ref.nth(0).unwrap().to_string(),
         version: ver.to_string(),
     };
-    log_info(&format!("image reference {:#?}", ir));
+    log_info(&format!("{:#?}", ir));
     ir
 }
 

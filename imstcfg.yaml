@@ -15,7 +15,6 @@ mirror:
   #rhop
   - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.12
   # now pushing from FBC catalog
-  - catalog: oci:///home/skhoury/oci-catalog2
   # redhatgov
   # - catalog: quay.io/redhatgov/oc-mirror-dev:test-catalog-latest
   # now pushing from FBC catalog
