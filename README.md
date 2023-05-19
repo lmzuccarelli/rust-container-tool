@@ -1,6 +1,6 @@
 ## Overview
 
-This is a simple POC that copies dockerv2 images (from a registry) to disk
+This is a simple POC that copies operator index images in dockerv2 format (from a registry) to disk
 
 ## Use Case
 
@@ -16,7 +16,6 @@ I used a simple approach - Occam's razor
 
 - A scientific and philosophical rule that entities should not be multiplied unnecessarily (KISS)
 - Worked with a v2 images for the POC
-- Add the catalog and relevant images in a catalog later
 
 
 ## Usage

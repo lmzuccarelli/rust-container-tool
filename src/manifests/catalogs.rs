@@ -19,6 +19,7 @@ pub fn read_operator_catalog(path: String) -> Result<serde_json::Value, Box<dyn 
     let mut s = String::new();
     file.read_to_string(&mut s)?;
     let res = s.replace(" ", "");
+    // update to allow for well formatted json so that it can be processed
     let updated_json =
         "{ \"overview\": [".to_string() + &res.replace("}\n{", "},{") + &"]}".to_string();
     // Parse the string of data into serde_json::Vec<DeclarativeConfig>
