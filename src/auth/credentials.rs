@@ -4,14 +4,21 @@ use base64::{engine::general_purpose, Engine as _};
 use std::fs::File;
 use std::io::Read;
 use std::str;
+use std::env;
 
 pub fn get_credentials() -> Result<String, Box<dyn std::error::Error>> {
     // Create a path to the desired file
-    let path = Path::new("/run/user/1000/containers/auth.json");
+    // using $XDG_RUNTIME_DIR envar
+    let u = match env::var_os("XDG_RUNTIME_DIR") {
+        Some(v) => v.into_string().unwrap(),
+        None => panic!("$XDG_RUNTIME_DIR is not set")
+    };
+    let binding = &(u.to_owned() + "/containers/auth.json");
+    let path = Path::new(binding);
     let display = path.display();
 
     // Open the path in read-only mode, returns `io::Result<File>`
-    let mut file = match File::open(&path) {
+    let mut file = match File::open(&binding) {
         Err(why) => panic!("couldn't open {}: {}", display, why),
         Ok(file) => file,
     };
