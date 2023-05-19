@@ -59,7 +59,7 @@ pub async fn get_auth_json(
 
 pub async fn get_token(name: String) -> String {
     let token_url = match name.as_str() {
-        "redhat" => "https://sso.redhat.com/auth/realms/rhcc/protocol/redhat-docker-v2/auth?service=docker-registry&client_id=curl&scope=repository:rhel:pull".to_string(),
+        "registry.redhat.io" => "https://sso.redhat.com/auth/realms/rhcc/protocol/redhat-docker-v2/auth?service=docker-registry&client_id=curl&scope=repository:rhel:pull".to_string(),
         &_ => "none".to_string(),
     };
     // get creds from $XDG_RUNTIME_DIR

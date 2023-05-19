@@ -46,7 +46,7 @@ async fn main() {
 
     // check if the directory exists
     if !Path::new(&working_dir_blobs).exists() {
-        let token = get_token(img_ref.namespace.clone()).await;
+        let token = get_token(img_ref.registry.clone()).await;
         // use token to get manifest
         let manifest_url = get_image_manifest_url(img_ref.clone());
         let manifest = get_manifest(manifest_url.clone(), token.clone())

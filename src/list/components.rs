@@ -33,7 +33,7 @@ pub fn list_channel_info(dc: serde_json::Value) {
         Ok(val) => val,
         Err(_) => {
             let ch = ChannelEntry {
-                name: String::from("None"),
+                name: String::from("none"),
                 skips: Some(String::from("no-skips")),
                 skip_range: Some(String::from("no-skip_range")),
                 replaces: Some(String::from("no-replaces")),
