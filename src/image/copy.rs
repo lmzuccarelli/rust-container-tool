@@ -11,7 +11,7 @@ use tar::Archive;
 use crate::api::schema::*;
 use crate::log::logging::*;
 
-// get manifest
+// get manifest async api call
 pub async fn get_manifest(
     url: String,
     token: String,
@@ -31,9 +31,10 @@ pub async fn get_manifest(
     Ok(body)
 }
 
+// get each blob referred to by the vector in parallel 
+// set by the PARALLEL_REQUESTS value
 pub async fn get_blobs(url: String, token: String, layers: Vec<FsLayer>, dir: String) {
     const PARALLEL_REQUESTS: usize = 8;
-    //const BLOBS_DIR: &str = "working-dir/certified/blobs/sha256/";
 
     let inner_dir = &dir;
     let client = Client::new();
@@ -87,6 +88,7 @@ pub async fn get_blobs(url: String, token: String, layers: Vec<FsLayer>, dir: St
     fetches.await;
 }
 
+// untar layers in directory denoted by parameter 'dir'
 pub async fn untar_layers(dir: String) {
     // change to the blobs/sha256 directory
     let current_dir = env::current_dir().unwrap();
@@ -130,6 +132,7 @@ pub fn parse_image_index(image: String) -> ImageReference {
     ir
 }
 
+// contruct the manifest url
 pub fn get_image_manifest_url(image_ref: ImageReference) -> String {
     // return a string in the form of (example below)
     // "https://registry.redhat.io/v2/redhat/certified-operator-index/manifests/v4.12";
@@ -145,6 +148,7 @@ pub fn get_image_manifest_url(image_ref: ImageReference) -> String {
     url
 }
 
+// construct the blobs url
 pub fn get_blobs_url(image_ref: ImageReference) -> String {
     // return a string in the form of (example below)
     // "https://registry.redhat.io/v2/redhat/certified-operator-index/blobs/";

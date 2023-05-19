@@ -25,6 +25,7 @@ pub async fn list_components(ctype: String, dir: String, filter: String) {
     }
 }
 
+// iterate through object and display values
 pub fn list_channel_info(dc: serde_json::Value) {
     // attempt to read entries first
     // this is because some catalogs don't have entries and

@@ -6,6 +6,7 @@ use std::io::Read;
 use std::str;
 use std::env;
 
+// read the credentials from set path (see podman credential reference) 
 pub fn get_credentials() -> Result<String, Box<dyn std::error::Error>> {
     // Create a path to the desired file
     // using $XDG_RUNTIME_DIR envar
@@ -29,24 +30,28 @@ pub fn get_credentials() -> Result<String, Box<dyn std::error::Error>> {
     Ok(s)
 }
 
+// parse the json credentials to a struct
 pub fn parse_json_creds(data: String) -> Result<String, Box<dyn std::error::Error>> {
     // Parse the string of data into serde_json::Root.
     let creds: Root = serde_json::from_str(&data)?;
     Ok(creds.auths.registry_redhat_io.auth)
 }
 
+// parse the json from the api call 
 pub fn parse_json_token(data: String) -> Result<String, Box<dyn std::error::Error>> {
     // Parse the string of data into serde_json::Token.
     let root: Token = serde_json::from_str(&data)?;
     Ok(root.access_token)
 }
 
+// parse the manifest json
 pub fn parse_json_manifest(data: String) -> Result<ManifestSchema, Box<dyn std::error::Error>> {
     // Parse the string of data into serde_json::ManifestSchema.
     let root: ManifestSchema = serde_json::from_str(&data)?;
     Ok(root)
 }
 
+// async api call with basic auth
 pub async fn get_auth_json(
     url: String,
     user: String,
@@ -64,6 +69,7 @@ pub async fn get_auth_json(
     Ok(body)
 }
 
+// process all relative functions in this module to actaully get the token
 pub async fn get_token(name: String) -> String {
     let token_url = match name.as_str() {
         "registry.redhat.io" => "https://sso.redhat.com/auth/realms/rhcc/protocol/redhat-docker-v2/auth?service=docker-registry&client_id=curl&scope=repository:rhel:pull".to_string(),
@@ -83,10 +89,11 @@ pub async fn get_token(name: String) -> String {
     // get user and password form json
     let user = s.split(":").nth(0).unwrap();
     let pwd = s.split(":").nth(1).unwrap();
-    // call the realm url get a token with the creds
+    // call the realm url to get a token with the creds
     let res = get_auth_json(token_url, user.to_string(), pwd.to_string())
         .await
         .unwrap();
+    // if all goes well we should have a valid token
     let token = parse_json_token(res).unwrap();
     token
 }
